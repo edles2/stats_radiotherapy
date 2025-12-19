@@ -469,6 +469,13 @@ def main():
             ax1.set_title("Comparaison Manuel vs Méthode")
             apply_plot_theme(fig1, ax1, theme_mode=theme_mode, primary_color=primary_color)
             st.pyplot(fig1, use_container_width=True)
+            # Bande de tolérance en erreur absolue (±T Gy autour de y=x)
+            T = abs_threshold
+            ax1.plot([min_val, max_val], [min_val + T, max_val + T], ":", color="gray", alpha=0.7)
+            ax1.plot([min_val, max_val], [min_val - T, max_val - T], ":", color="gray", alpha=0.7)
+            # Optionnel : remplir la bande (plus parlant)
+            xs = np.linspace(min_val, max_val, 200)
+            ax1.fill_between(xs, xs - T, xs + T, color="gray", alpha=0.08)
 
             # 2) Bland–Altman
             st.markdown("#### Bland–Altman : différence vs moyenne")
