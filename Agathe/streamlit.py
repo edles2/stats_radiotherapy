@@ -233,6 +233,11 @@ def main():
         value="#1f77b4",
     )
 
+    outlier_color = st.sidebar.color_picker(
+        "Couleur des points hors tolérance",
+        value="#ff7f0e",  # orange standard
+    )
+
     point_size = st.sidebar.slider(
         "Taille des points",
         min_value=10,
