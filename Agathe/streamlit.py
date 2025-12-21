@@ -459,60 +459,46 @@ def main():
                 f"### Méthode `{method_graph}` – Zone `{zone_graph}`  "
                 f"(n = {len(df_g)} dents)"
             )
-
+            
             # 1) Nuage de points Manuel vs Méthode
             st.markdown("#### Nuage de points : Manuel vs Méthode")
             fig1, ax1 = plt.subplots()
+            
             x = df_g["dose_manuel"].to_numpy()
             y = df_g["dose_method"].to_numpy()
-            ax1.scatter(x, y, s=point_size, alpha=0.8, color=primary_color)
-            min_val = min(np.min(x), np.min(y))
-            max_val = max(np.max(x), np.max(y))
-            ax1.plot([min_val, max_val], [min_val, max_val], "--", color="gray", alpha=0.7)
-            ax1.set_xlabel("Dose manuelle (Gy)")
-            ax1.set_ylabel("Dose méthode (Gy)")
-            ax1.set_title("Comparaison Manuel vs Méthode")
-            apply_plot_theme(fig1, ax1, theme_mode=theme_mode, primary_color=primary_color)
-            st.pyplot(fig1, use_container_width=True)
-            # Bande de tolérance en erreur absolue (±T Gy autour de y=x)
+            
+            # Différence pour la tolérance
             diff_vals = y - x
             T = abs_threshold
             ok = np.abs(diff_vals) <= T
+            
             min_val = min(np.min(x), np.min(y))
             max_val = max(np.max(x), np.max(y))
-            # Bande de tolérance ±T autour de y=x (AVANT les points)
-            if T is not None and T > 0:
-                xs = np.linspace(min_val, max_val, 200)
-                ax1.fill_between(
-                    xs, xs - T, xs + T,
-                    color=outlier_color,
-                    alpha=0.12,          # augmente si tu veux plus visible
-                    linewidth=0,
-                    zorder=0             # important
-                )
-                ax1.plot([min_val, max_val], [min_val + T, max_val + T], ":", color=outlier_color, alpha=0.9, zorder=1)
-                ax1.plot([min_val, max_val], [min_val - T, max_val - T], ":", color=outlier_color, alpha=0.9, zorder=1)
-            # Points dans la tolérance
-            ax1.scatter(
-                x[ok], y[ok],
-                s=point_size,
-                alpha=0.85,
-                color=primary_color,
-                label=f"|diff| ≤ {T:.2f} Gy",
-                zorder=2
-            )
             
-            # Points hors tolérance
-            ax1.scatter(
-                x[~ok], y[~ok],
-                s=point_size,
-                alpha=0.85,
-                color=outlier_color,
-                label=f"|diff| > {T:.2f} Gy",
-                zorder=3
-            )
+            # Bande de tolérance (derrière)
+            if T is not None and T > 0:
+                xs = np.linspace(min_val, max_val, 300)
+                ax1.fill_between(xs, xs - T, xs + T, color=outlier_color, alpha=0.18, linewidth=0, zorder=0)
+            
+            # Diagonale y=x
             ax1.plot([min_val, max_val], [min_val, max_val], "--", color="gray", alpha=0.7, zorder=1)
+            
+            # Limites de tolérance (au-dessus, épaisses -> visibles)
+            if T is not None and T > 0:
+                ax1.plot([min_val, max_val], [min_val + T, max_val + T], ":", color=outlier_color, linewidth=2.5, alpha=0.95, zorder=10)
+                ax1.plot([min_val, max_val], [min_val - T, max_val - T], ":", color=outlier_color, linewidth=2.5, alpha=0.95, zorder=10)
+            
+            # Points dans / hors tolérance (même couleur que BA pour hors tolérance)
+            ax1.scatter(x[ok], y[ok], s=point_size, alpha=0.85, color=primary_color, label=f"|diff| ≤ {T:.2f} Gy", zorder=3)
+            ax1.scatter(x[~ok], y[~ok], s=point_size, alpha=0.85, color=outlier_color, label=f"|diff| > {T:.2f} Gy", zorder=4)
+            
+            ax1.set_xlabel("Dose manuelle (Gy)")
+            ax1.set_ylabel("Dose méthode (Gy)")
+            ax1.set_title("Comparaison Manuel vs Méthode")
             ax1.legend()
+            
+            apply_plot_theme(fig1, ax1, theme_mode=theme_mode, primary_color=primary_color)
+            st.pyplot(fig1, use_container_width=True)
 
             # 2) Bland–Altman
             st.markdown("#### Bland–Altman : différence vs moyenne")
